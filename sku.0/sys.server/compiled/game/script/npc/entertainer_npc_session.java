@@ -15,6 +15,8 @@ import script.library.*;
  *  2. OnBuffBuilderValidate       - player pressed Accept: we check range and points, then tell the engine OK.
  *  3. OnBuffBuilderCompleted      - engine accepted: we apply the 1 hour buff, with the NPC as the buffer.
  *  4. OnBuffBuilderCanceled       - window closed or something failed: we clean up.
+ *  5. entertainerNpcSessionTimeout - 10 minute safety net for abandoned windows.
+ * Every step writes one "EntertainerNPC:" line to customerService.log for troubleshooting.
  * Every path ends in cleanupSession(), which removes the client markers and detaches this script.
  */
 public class entertainer_npc_session extends script.base_script
@@ -52,11 +54,35 @@ public class entertainer_npc_session extends script.base_script
         obj_id npc = getSessionNpc(self);
         if (!isNpcUsable(self, npc))
         {
+            entertainer_npc.csLog("session start failed (npc missing, player incapacitated or out of range) player=" + self);
             cleanupSession(self);
             return SCRIPT_CONTINUE;
         }
         // Self-buff: the player is both buffer and recipient, so their own client gets the builder window.
         buffBuilderStart(self, self);
+        entertainer_npc.csLog("session started (window sent) player=" + self + " npc=" + npc);
+        return SCRIPT_CONTINUE;
+    }
+
+    /**
+     * Safety net sent by the NPC when the session was prepared. If the same session is still
+     * open after 10 minutes, the window was abandoned: clean up. A newer session has a different
+     * start time, so an old timer never touches it.
+     */
+    public int entertainerNpcSessionTimeout(obj_id self, dictionary params) throws InterruptedException
+    {
+        if (params == null || !utils.hasScriptVar(self, entertainer_npc.VAR_START_TIME))
+        {
+            return SCRIPT_CONTINUE;
+        }
+        int timerStartTime = params.getInt("startTime");
+        int currentStartTime = utils.getIntScriptVar(self, entertainer_npc.VAR_START_TIME);
+        if (timerStartTime != currentStartTime)
+        {
+            return SCRIPT_CONTINUE;
+        }
+        entertainer_npc.csLog("timeout cleanup player=" + self + " startTime=" + currentStartTime);
+        cleanupSession(self);
         return SCRIPT_CONTINUE;
     }
 
@@ -70,24 +96,35 @@ public class entertainer_npc_session extends script.base_script
         {
             return SCRIPT_CONTINUE;
         }
+        obj_id npc = getSessionNpc(self);
+        int keyCount = (buffComponentKeys == null) ? 0 : buffComponentKeys.length;
+        entertainer_npc.csLog("validate player=" + self + " npc=" + npc + " accepted=" + accepted + " keys=" + keyCount + " points=" + countPoints(buffComponentKeys, buffComponentValues));
         if (!accepted)
         {
+            entertainer_npc.csLog("validate: not accepted, cleaning up player=" + self);
             cleanupSession(self);
             return SCRIPT_CONTINUE;
         }
-        obj_id npc = getSessionNpc(self);
         if (!isNpcUsable(self, npc))
         {
+            entertainer_npc.csLog("validate failed (npc missing, player incapacitated or out of range) player=" + self);
             cancelSession(self, startingTime, buffComponentKeys, buffComponentValues);
             return SCRIPT_CONTINUE;
         }
         if (!areBuffChoicesValid(self, buffComponentKeys, buffComponentValues))
         {
+            entertainer_npc.csLog("validate failed (invalid buff choices) player=" + self);
             cancelSession(self, startingTime, buffComponentKeys, buffComponentValues);
             return SCRIPT_CONTINUE;
         }
         // Credits are always 0: the Entertainer NPC is free.
-        buffBuilderValidated(self, self, startingTime, 0, 0, true, buffComponentKeys, buffComponentValues);
+        boolean ok = buffBuilderValidated(self, self, startingTime, 0, 0, true, buffComponentKeys, buffComponentValues);
+        entertainer_npc.csLog("validate: sent to engine player=" + self + " engineResult=" + ok);
+        if (!ok)
+        {
+            // The engine could not find or finish the session; make sure nothing is left behind.
+            cleanupSession(self);
+        }
         return SCRIPT_CONTINUE;
     }
 
@@ -103,12 +140,14 @@ public class entertainer_npc_session extends script.base_script
         obj_id npc = getSessionNpc(self);
         if (!isIdValid(npc) || !exists(npc))
         {
+            entertainer_npc.csLog("completed but npc missing, no buff applied player=" + self);
             sendSystemMessage(self, "The Entertainer is no longer here. No buff was applied.", null);
             cleanupSession(self);
             return SCRIPT_CONTINUE;
         }
         if (buffComponentKeys == null || buffComponentValues == null || buffComponentKeys.length == 0 || buffComponentKeys.length != buffComponentValues.length)
         {
+            entertainer_npc.csLog("completed with no buffs chosen player=" + self);
             sendSystemMessage(self, "No buffs were chosen, so nothing was applied.", null);
             cleanupSession(self);
             return SCRIPT_CONTINUE;
@@ -125,7 +164,8 @@ public class entertainer_npc_session extends script.base_script
         {
             buff.removeBuff(self, BUILDABUFF_NAME);
         }
-        buff.applyBuff(self, BUILDABUFF_NAME, entertainer_npc.BUFF_DURATION);
+        boolean applied = buff.applyBuff(self, BUILDABUFF_NAME, entertainer_npc.BUFF_DURATION);
+        entertainer_npc.csLog("completed player=" + self + " npc=" + npc + " applied=" + applied + " duration=" + entertainer_npc.BUFF_DURATION + " keys=" + buffComponentKeys.length + " points=" + countPoints(buffComponentKeys, buffComponentValues));
         sendSystemMessage(self, "You feel inspired! Your buffs will last 1 hour.", null);
 
         cleanupSession(self);
@@ -134,6 +174,7 @@ public class entertainer_npc_session extends script.base_script
 
     public int OnBuffBuilderCanceled(obj_id self) throws InterruptedException
     {
+        entertainer_npc.csLog("canceled player=" + self);
         cleanupSession(self);
         return SCRIPT_CONTINUE;
     }
@@ -173,6 +214,27 @@ public class entertainer_npc_session extends script.base_script
             return false;
         }
         return true;
+    }
+
+    /**
+     * Adds up the point cost of the chosen buffs (for the log). Unknown rows count as 0.
+     */
+    public static int countPoints(String[] keys, int[] values) throws InterruptedException
+    {
+        if (keys == null || values == null || keys.length != values.length)
+        {
+            return -1;
+        }
+        int points = 0;
+        for (int i = 0; i < keys.length; i++)
+        {
+            dictionary row = dataTableGetRow(DATATABLE_BUFF_BUILDER, keys[i]);
+            if (row != null)
+            {
+                points += row.getInt("COST") * values[i];
+            }
+        }
+        return points;
     }
 
     /**
@@ -253,8 +315,8 @@ public class entertainer_npc_session extends script.base_script
         entertainer_npc.removeClientMarkers(player);
         utils.removeScriptVar(player, entertainer_npc.VAR_NPC_ID);
         utils.removeScriptVar(player, entertainer_npc.VAR_START_TIME);
-        // We attached this to block a second /inspire while the window was open.
-        // (The buff code also removes it when the buff is applied.)
+        // Newer sessions no longer attach this, but the first version of the Entertainer NPC did.
+        // Remove it so a leftover copy can never block a real entertainer's /inspire.
         if (hasScript(player, entertainer_npc.SCRIPT_BUFF_BUILDER_CANCEL))
         {
             detachScript(player, entertainer_npc.SCRIPT_BUFF_BUILDER_CANCEL);

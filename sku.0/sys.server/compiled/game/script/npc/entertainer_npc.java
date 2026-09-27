@@ -44,7 +44,8 @@ public class entertainer_npc extends script.base_script
     public static final float BUFF_DURATION = 3600.0f;       // exactly 1 hour
     public static final float MARKER_DURATION = 600.0f;      // safety net only; markers are removed when the window closes
     public static final float SESSION_START_DELAY = 1.0f;    // gives the client time to receive the markers first
-    public static final int STALE_SESSION_SECONDS = 600;     // after this long, an unfinished session is treated as abandoned
+    public static final float SESSION_TIMEOUT_SECONDS = 600.0f; // an unfinished session is cleaned up after this long
+    public static final int DOUBLE_CLICK_SECONDS = 3;        // talking again within this time is ignored (double-click guard)
 
     // Every entertainer starts with 8 points; expertise_en_inspire_base_point_increase adds to it.
     public static final int BASE_BUFF_POINTS = 8;
@@ -163,29 +164,39 @@ public class entertainer_npc extends script.base_script
      */
     public void startBuffSession(obj_id self, obj_id player) throws InterruptedException
     {
+        csLog("talk player=" + player + " npc=" + self);
         if (isDead(player) || isIncapacitated(player))
         {
+            csLog("refused (dead or incapacitated) player=" + player);
             sendSystemMessage(player, "You cannot be inspired in your current condition.", null);
             return;
         }
         if (getDistance(self, player) > MAX_USE_RANGE)
         {
+            csLog("refused (too far) player=" + player);
             sendSystemMessage(player, "You are too far away from the Entertainer.", null);
             return;
         }
         if (hasScript(player, SCRIPT_SESSION))
         {
+            // Only a very recent session is protected, so a double-click doesn't open two windows.
             int startTime = utils.getIntScriptVar(player, VAR_START_TIME);
-            if (getGameTime() - startTime < STALE_SESSION_SECONDS)
+            if (getGameTime() - startTime < DOUBLE_CLICK_SECONDS)
             {
-                sendSystemMessage(player, "You already have the Entertainer's window open.", null);
+                csLog("refused (double click) player=" + player);
+                sendSystemMessage(player, "Please wait a moment, your window is opening.", null);
                 return;
             }
-            // An old session was never finished (for example the window was lost). Clean it up and start fresh.
+            // An older session is still attached (for example the window was closed after Accept,
+            // which tells the server nothing). Throw it away and start fresh. Starting a new
+            // Buff Builder session for the same player replaces the old one in the engine too.
+            csLog("replacing old session player=" + player);
             entertainer_npc_session.cleanupSession(player);
         }
         if (hasScript(player, SCRIPT_BUFF_BUILDER_RESPONSE) || hasScript(player, SCRIPT_BUFF_BUILDER_CANCEL))
         {
+            // A real entertainer's /inspire session is running for this player.
+            csLog("refused (real entertainer session running) player=" + player);
             sendSystemMessage(player, "You are already being inspired. Finish or cancel that first.", null);
             return;
         }
@@ -193,17 +204,31 @@ public class entertainer_npc extends script.base_script
         // Make sure the master values are really on the NPC before we copy them to the player.
         applyMasterMods(self);
 
+        int startTime = getGameTime();
         utils.setScriptVar(player, VAR_NPC_ID, self);
-        utils.setScriptVar(player, VAR_START_TIME, getGameTime());
+        utils.setScriptVar(player, VAR_START_TIME, startTime);
         attachScript(player, SCRIPT_SESSION);
-
-        // Same as the normal /inspire flow: this blocks a real entertainer from starting a second
-        // inspire on this player while our window is open. The buff code removes it again.
-        attachScript(player, SCRIPT_BUFF_BUILDER_CANCEL);
 
         addClientMarkers(self, player);
         messageTo(player, "entertainerNpcStartSession", null, SESSION_START_DELAY, false);
+
+        // Safety net: if the window is abandoned without the server hearing about it,
+        // clean up after 10 minutes. The handler only acts if this is still the same session.
+        dictionary timeoutParams = new dictionary();
+        timeoutParams.put("startTime", startTime);
+        messageTo(player, "entertainerNpcSessionTimeout", timeoutParams, SESSION_TIMEOUT_SECONDS, false);
+
+        csLog("session prepared player=" + player + " npc=" + self + " startTime=" + startTime);
         sendSystemMessage(player, "Choose your inspiration buffs, then press Accept. They will last 1 hour.", null);
+    }
+
+    /**
+     * Writes one line to customerService.log. On this server only the "CustomerService"
+     * log channel reaches a readable file, so all Entertainer NPC diagnostics go there.
+     */
+    public static void csLog(String message) throws InterruptedException
+    {
+        CustomerServiceLog("CustomerService", "EntertainerNPC: " + message);
     }
 
     /**
