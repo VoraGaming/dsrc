@@ -1760,7 +1760,14 @@ public class buff_handler extends script.base_script
         int actualPointsToSpend = 8;
         if (isIdValid(bufferId) && exists(bufferId))
         {
-            actualPointsToSpend += getEnhancedSkillStatisticModifierUncapped(bufferId, "expertise_en_inspire_base_point_increase");
+            if (hasObjVar(bufferId, "entertainer_npc.max_budget_20"))
+            {
+                actualPointsToSpend = 20;
+            }
+            else
+            {
+                actualPointsToSpend += getEnhancedSkillStatisticModifierUncapped(bufferId, "expertise_en_inspire_base_point_increase");
+            }
         }
         int attemptingToSpendPoints = 0;
         for (int i = 0; i < buffComponentKeys.length; i++)
