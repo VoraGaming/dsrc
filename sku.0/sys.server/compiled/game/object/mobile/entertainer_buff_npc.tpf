@@ -1,0 +1,11 @@
+@base object/creature/npc/base/base_npc.iff
+
+@class creature_object_template 1
+
+@class tangible_object_template 0
+
+@class object_template 0
+
+sharedTemplate = "object/mobile/shared_entertainer_buff_npc.iff"
+
+scripts = +["systems.buff_builder.entertainer_buff_npc"]
