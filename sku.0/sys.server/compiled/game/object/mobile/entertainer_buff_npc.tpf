@@ -8,4 +8,4 @@
 
 sharedTemplate = "object/mobile/shared_entertainer_buff_npc.iff"
 
-scripts = +["systems.buff_builder.entertainer_buff_npc"]
+scripts = +["systems.buff_builder.entertainer_buff_npc", "conversation.entertainer_buff_npc"]

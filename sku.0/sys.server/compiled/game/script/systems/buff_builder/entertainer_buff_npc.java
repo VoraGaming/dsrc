@@ -12,8 +12,6 @@ public class entertainer_buff_npc extends script.base_script
     public static final String SCRIPT_BUFF_BUILDER_CANCEL = "systems.buff_builder.buff_builder_cancel";
     public static final String BUILDABUFF_NAME = "buildabuff_inspiration";
     public static final float BUFF_DURATION = 3600.0f;
-    public static final float BUFF_BUILDER_RANGE = 8.0f;
-    public static final String SID_ALREADY_BEING_INSPIRED = "already_being_inspired";
     public static final String[] ENTERTAINER_EXPERTISE_SKILLS =
     {
         "expertise_en_inspired_fitness_1",
@@ -53,41 +51,6 @@ public class entertainer_buff_npc extends script.base_script
     public int OnInitialize(obj_id self) throws InterruptedException
     {
         grantEntertainerExpertise(self);
-        return SCRIPT_CONTINUE;
-    }
-
-    public int OnObjectMenuRequest(obj_id self, obj_id player, menu_info mi) throws InterruptedException
-    {
-        if (!isIdValid(player))
-        {
-            return SCRIPT_OVERRIDE;
-        }
-        mi.addRootMenu(menu_info_types.ITEM_USE, null);
-        return SCRIPT_CONTINUE;
-    }
-
-    public int OnObjectMenuSelect(obj_id self, obj_id player, int item) throws InterruptedException
-    {
-        if (item != menu_info_types.ITEM_USE)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (!isIdValid(player) || isDead(player) || isIncapacitated(player))
-        {
-            return SCRIPT_CONTINUE;
-        }
-        if (hasScript(player, SCRIPT_BUFF_BUILDER_CANCEL))
-        {
-            sendSystemMessage(player, new string_id("spam", SID_ALREADY_BEING_INSPIRED));
-            return SCRIPT_CONTINUE;
-        }
-        float distance = (getLocation(self)).distance(getLocation(player));
-        if (distance > BUFF_BUILDER_RANGE)
-        {
-            return SCRIPT_CONTINUE;
-        }
-        attachScript(player, SCRIPT_BUFF_BUILDER_CANCEL);
-        buffBuilderStart(self, player);
         return SCRIPT_CONTINUE;
     }
 
