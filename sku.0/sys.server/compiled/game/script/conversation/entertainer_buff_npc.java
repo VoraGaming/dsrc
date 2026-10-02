@@ -80,6 +80,10 @@ public class entertainer_buff_npc extends script.base_script
         utils.setScriptVar(player, entertainer_npc_session.VAR_NPC_ID, self);
         utils.setScriptVar(player, entertainer_npc_session.VAR_IN_SESSION, true);
         attachScript(player, SESSION_SCRIPT);
+        // Ensure the NPC carries the master-entertainer values and that the
+        // player's client sees the 20-point budget + 22 rows before the window opens.
+        entertainer_npc_session.applyMasterMods(self);
+        entertainer_npc_session.addClientMarkers(self, player);
         // Self-buff: the player is both buffer and recipient, so the player's own
         // client gets the Build-a-Buff window (a server NPC has no client to show
         // it on; making the NPC the buffer opened the Buffee window on the player).
