@@ -2,13 +2,15 @@ package script.conversation;
 
 import script.*;
 import script.library.ai_lib;
+import script.library.utils;
+import script.npc.entertainer_npc_session;
 
 public class entertainer_buff_npc extends script.base_script
 {
     public entertainer_buff_npc()
     {
     }
-    public static final String SCRIPT_BUFF_BUILDER_CANCEL = "systems.buff_builder.buff_builder_cancel";
+    public static final String SESSION_SCRIPT = "npc.entertainer_npc_session";
     public static final float BUFF_BUILDER_RANGE = 8.0f;
     public static final String SID_ALREADY_BEING_INSPIRED = "already_being_inspired";
 
@@ -18,12 +20,16 @@ public class entertainer_buff_npc extends script.base_script
         {
             detachScript(self, "conversation.entertainer_buff_npc");
         }
+        // Talk-only service NPC: invulnerable so a left-click engages the
+        // conversation, not combat, plus the conversable condition.
+        setInvulnerable(self, true);
         setCondition(self, CONDITION_CONVERSABLE);
         return SCRIPT_CONTINUE;
     }
 
     public int OnAttach(obj_id self) throws InterruptedException
     {
+        setInvulnerable(self, true);
         setCondition(self, CONDITION_CONVERSABLE);
         return SCRIPT_CONTINUE;
     }
@@ -55,7 +61,7 @@ public class entertainer_buff_npc extends script.base_script
             npcEndConversation(player);
             return SCRIPT_CONTINUE;
         }
-        if (hasScript(player, SCRIPT_BUFF_BUILDER_CANCEL))
+        if (utils.getBooleanScriptVar(player, entertainer_npc_session.VAR_IN_SESSION))
         {
             sendSystemMessage(player, new string_id("spam", SID_ALREADY_BEING_INSPIRED));
             npcEndConversation(player);
@@ -68,8 +74,16 @@ public class entertainer_buff_npc extends script.base_script
             return SCRIPT_CONTINUE;
         }
         npcEndConversation(player);
-        attachScript(player, SCRIPT_BUFF_BUILDER_CANCEL);
-        buffBuilderStart(self, player);
+
+        // Remember which NPC is buffing the player, so the completed buff can
+        // read its expertise mods from the NPC (the player has none).
+        utils.setScriptVar(player, entertainer_npc_session.VAR_NPC_ID, self);
+        utils.setScriptVar(player, entertainer_npc_session.VAR_IN_SESSION, true);
+        attachScript(player, SESSION_SCRIPT);
+        // Self-buff: the player is both buffer and recipient, so the player's own
+        // client gets the Build-a-Buff window (a server NPC has no client to show
+        // it on; making the NPC the buffer opened the Buffee window on the player).
+        buffBuilderStart(player, player);
         return SCRIPT_CONTINUE;
     }
 }
