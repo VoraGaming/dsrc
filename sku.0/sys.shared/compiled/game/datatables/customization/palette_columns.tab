@@ -19,7 +19,7 @@ pc_horns_zab_b	5	5
 pc_lips_hum	8	96
 pc_lips_twk	8	96
 pc_skin_bth	8	64
-pc_skin_hum	8	48
+pc_skin_hum	8	49
 pc_skin_ith_f	8	32
 pc_skin_ith_m	8	48
 pc_skin_mon	4	28
@@ -31,7 +31,6 @@ pc_skin_trn	5	25
 pc_skin_twk	4	36
 pc_skin_twk_leccu	4	40
 pc_skin_wke	4	20
-pc_skin_zab	4	41
 pc_tat_zab	8	64
 ui	8	
 wr_cloth_general	8	
