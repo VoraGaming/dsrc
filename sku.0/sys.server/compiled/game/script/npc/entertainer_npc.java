@@ -119,6 +119,16 @@ public class entertainer_npc extends script.base_script
         setInvulnerable(self, true);
         setCondition(self, CONDITION_CONVERSABLE);
         applyMasterMods(self);
+        // Loop the dance from spawn (same mood the NPE blurts use for /dance).
+        setAnimationMood(self, "npc_dance_basic");
+    }
+
+    // Re-assert the dance when the object enters the world, so the loop survives
+    // any client (re)load. OnAttach/OnInitialize already call setupEntertainerNpc.
+    public int OnObjectEnterWorld(obj_id self) throws InterruptedException
+    {
+        setAnimationMood(self, "npc_dance_basic");
+        return SCRIPT_CONTINUE;
     }
 
     /**
@@ -203,6 +213,10 @@ public class entertainer_npc extends script.base_script
 
         // Make sure the master values are really on the NPC before we copy them to the player.
         applyMasterMods(self);
+
+        // Greet before the window opens: face the player and say one line to everyone nearby.
+        faceTo(self, player);
+        chat._chat(self, player, chat.CHAT_SAY, null, "Hi Honey! How can I inspire you today?", null, null);
 
         int startTime = getGameTime();
         utils.setScriptVar(player, VAR_NPC_ID, self);
