@@ -63,6 +63,8 @@ public class buff_bot extends script.base_script
     {
         if (isIdValid(speaker) && isPlayer(speaker))
         {
+            faceTo(self, speaker);
+            npcSpeak(speaker, new string_id("Hello! How can I be of assistance?"));
             showBuffMenu(self, speaker);
         }
         return SCRIPT_CONTINUE;
