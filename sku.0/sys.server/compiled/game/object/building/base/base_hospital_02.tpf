@@ -7,7 +7,7 @@
 @class tangible_object_template 1
 
 @class object_template 5
-scripts =+["npc.skillteacher.hospital_02_trainer_spawner", "structure.municipal.hospital"]
+scripts =+["npc.skillteacher.hospital_02_trainer_spawner", "structure.municipal.hospital", "systems.interior_buildout.interior_npc_spawner"]
 objvars =+["healing.canhealwound"=1]
 
 moveFlags = [ MF_gm ]

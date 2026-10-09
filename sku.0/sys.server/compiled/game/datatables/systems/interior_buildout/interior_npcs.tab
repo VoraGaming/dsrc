@@ -1,0 +1,10 @@
+BUILDING	TEMPLATE	CELL_NAME	POS_X	POS_Y	POS_Z	YAW	PITCH	ROLL	DETACH_SCRIPTS	ATTACH_SCRIPTS	OBJ_VARS	NAME	STATIC	INVULNERABLE
+s	s	s	f[0]	f[0]	f[0]	f[0]	f[0]	f[0]	s[none]	s[none]	s[none]	s[none]	i[1]	i[1]
+object/building/tatooine/cantina_tatooine.iff	object/mobile/entertainer_npc.iff	stage	-4.63	-0.89	-21.22	330	0	0	none	none	none	none	1	1
+object/building/corellia/cantina_corellia.iff	object/mobile/entertainer_npc.iff	stage	-10.37	-0.89	-18.22	128	0	0	none	none	none	none	1	1
+object/building/naboo/cantina_naboo.iff	object/mobile/entertainer_npc.iff	stage	-7.37	-0.89	-20.22	345	0	0	none	none	none	none	1	1
+object/building/tatooine/hospital_tatooine_style01.iff	object/mobile/buff_bot.iff	roomb	30.00	0.26	1.00	323	0	0	none	none	none	none	1	1
+object/building/tatooine/hospital_tatooine_style02.iff	object/mobile/buff_bot.iff	mainroom	15.08	0.18	-1.25	180	0	0	none	none	none	none	1	1
+object/building/corellia/hospital_corellia_s02.iff	object/mobile/buff_bot.iff	mainroom	15.08	0.18	-1.25	180	0	0	none	none	none	none	1	1
+object/building/general/mun_all_hospital_s02.iff	object/mobile/buff_bot.iff	mainroom	15.08	0.18	-1.25	180	0	0	none	none	none	none	1	1
+object/building/naboo/hospital_naboo_style01.iff	object/mobile/buff_bot.iff	roomb	22.75	0.26	11.00	180	0	0	none	none	none	none	1	1
