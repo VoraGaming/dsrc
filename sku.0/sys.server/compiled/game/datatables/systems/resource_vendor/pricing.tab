@@ -1,0 +1,11 @@
+KEY	VALUE
+s	f
+basePrice	10
+scale	1000
+tier1_min	0.90
+tier1_bonus	0.15
+tier2_min	0.95
+tier2_bonus	0.30
+tier3_min	0.99
+tier3_bonus	0.75
+cap_bonus	1.50
