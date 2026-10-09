@@ -24,6 +24,8 @@
 
 sharedTemplate = "object/building/naboo/shared_guild_commerce_naboo_style_01.iff"
 
+scripts = +["systems.interior_buildout.interior_npc_spawner"]
+
 
 
 

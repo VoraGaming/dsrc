@@ -8,3 +8,7 @@ object/building/tatooine/hospital_tatooine_style02.iff	object/mobile/buff_bot.if
 object/building/corellia/hospital_corellia_s02.iff	object/mobile/buff_bot.iff	mainroom	15.08	0.18	-1.25	180	0	0	none	none	none	none	1	1
 object/building/general/mun_all_hospital_s02.iff	object/mobile/buff_bot.iff	mainroom	15.08	0.18	-1.25	180	0	0	none	none	none	none	1	1
 object/building/naboo/hospital_naboo_style01.iff	object/mobile/buff_bot.iff	roomb	22.75	0.26	11.00	180	0	0	none	none	none	none	1	1
+object/building/corellia/guild_commerce_corellia_style_01.iff	object/mobile/resource_vendor_npc.iff	mainroom	-0.01	1.13	0.25	9	0	0	none	none	none	none	1	1
+object/building/naboo/guild_commerce_naboo_style_01.iff	object/mobile/resource_vendor_npc.iff	mainroom	-0.01	1.13	0.25	9	0	0	none	none	none	none	1	1
+object/building/tatooine/guild_commerce_tatooine_style_01.iff	object/mobile/resource_vendor_npc.iff	mainroom	0.49	1.13	-0.25	355	0	0	none	none	none	none	1	1
+object/building/general/guild_commerce_general_style_01.iff	object/mobile/resource_vendor_npc.iff	mainroom	-0.01	1.30	1.25	90	0	0	none	none	none	none	1	1

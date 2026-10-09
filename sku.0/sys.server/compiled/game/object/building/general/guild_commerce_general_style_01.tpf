@@ -24,6 +24,8 @@
 
 sharedTemplate = "object/building/general/shared_guild_commerce_general_style_01.iff"
 
+scripts = +["systems.interior_buildout.interior_npc_spawner"]
+
 
 
 

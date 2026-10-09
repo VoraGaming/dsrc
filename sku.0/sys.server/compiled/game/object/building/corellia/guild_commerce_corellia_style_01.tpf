@@ -24,6 +24,8 @@
 
 sharedTemplate = "object/building/corellia/shared_guild_commerce_corellia_style_01.iff"
 
+scripts = +["systems.interior_buildout.interior_npc_spawner"]
+
 
 
 

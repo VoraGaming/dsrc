@@ -24,3 +24,5 @@
 
 sharedTemplate = "object/building/tatooine/shared_guild_commerce_tatooine_style_01.iff"
 
+scripts = +["systems.interior_buildout.interior_npc_spawner"]
+
